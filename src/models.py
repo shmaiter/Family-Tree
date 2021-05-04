@@ -27,6 +27,7 @@ class Member(db.Model):
     def __repr__(self):
         return '<Member %r>' % self.name
 
+    # member_type gets as paremeter the title for the Member: Child, Parent or Member(when you ask for a single member from wich relationships built on)
     def serialize(self, member_type):
         return {
             member_type : {
@@ -36,3 +37,21 @@ class Member(db.Model):
             "age": self.age
             }
         }
+
+    def getAllMembers():
+        all_members = Member.query.order_by(Member.age.desc())
+        all_members = list(map(lambda x: x.serialize("Member:"), all_members))
+        return all_members
+
+    def getParents(id):
+        query_parents = db.session.query(children).filter(children.c.child_id == id).all() 
+        # Pass "Parent" as parameter for serialize
+        parents = list( map(lambda x: Member.query.get(x[1]).serialize("Parent"), query_parents))
+        return parents
+
+    def getChildren(id):
+        query_children = db.session.query(children).filter(children.c.parent_id == id).all()
+        # Pass "Child" as parameter for serialize
+        child = list( map(lambda x: Member.query.get(x[0]).serialize("Child"), query_children))
+        return child
+    

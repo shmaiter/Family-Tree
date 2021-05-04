@@ -32,21 +32,17 @@ def sitemap():
 
 @app.route('/all', methods=['GET'])
 def get_all_member():
-    all_member = Member.query.order_by(Member.age.desc())
-    all_member = list(map(lambda x: x.serialize("Member:"), all_member)) 
-    return jsonify(all_member), 200
+    all_members = Member.getAllMembers() 
+    return jsonify(all_members), 200
 
 @app.route('/member/<int:id>', methods=['GET'])
 def get_single_member(id):
     member = Member.query.get(id).serialize("Member")
 
-    query_children = db.session.query(children).filter(children.c.parent_id == id).all()
-    child = list( map(lambda x: Member.query.get(x[0]).serialize("Child"), query_children))
-
-    query_parents = db.session.query(children).filter(children.c.child_id == id).all() 
-    parents = list( map(lambda x: Member.query.get(x[1]).serialize("Parent"), query_parents))
+    children = Member.getChildren(id)
+    parents = Member.getParents(id)
     
-    return jsonify(member, child, parents), 200
+    return jsonify(member, children, parents), 200
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
